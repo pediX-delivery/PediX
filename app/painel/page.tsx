@@ -93,10 +93,21 @@ export default async function DashboardPage({
         <Link className="brand" href="/"><span className="brand-mark">P</span><span>PediX</span></Link>
         <form action={signOut}><button className="dashboard-logout" type="submit">Sair</button></form>
       </header>
-      <section className="dashboard-content">
-        <div className="auth-kicker">PAINEL ADMINISTRATIVO</div>
+      <div className="dashboard-layout">
+        <aside className="dashboard-sidebar">
+          <div className="sidebar-label">MENU PRINCIPAL</div>
+          <nav className="sidebar-nav" aria-label="Navegação do painel">
+            <a href="#overview" className="sidebar-link active"><span>⌂</span> Visão geral</a>
+            <a href="#business" className="sidebar-link"><span>▣</span> Dados da loja</a>
+            <a href="#categories" className="sidebar-link"><span>▤</span> Categorias</a>
+            <a href="#products" className="sidebar-link"><span>◇</span> Produtos</a>
+          </nav>
+          <div className="sidebar-help"><strong>Precisa de ajuda?</strong><span>Seu painel está em configuração. Você pode organizar sua loja por aqui.</span></div>
+        </aside>
+        <section className="dashboard-content">
+        <div id="overview" className="dashboard-page-heading"><div><div className="auth-kicker">PAINEL ADMINISTRATIVO</div>
         <h1>Bem-vindo ao PediX.</h1>
-        <p className="auth-description">Gerencie as informações comerciais da sua loja em um só lugar.</p>
+        <p className="auth-description">Gerencie as informações comerciais da sua loja em um só lugar.</p></div><span className="dashboard-welcome-chip">Área administrativa</span></div>
 
         <div className="dashboard-info">
           <span className="dashboard-info-label">Conta conectada</span>
@@ -137,7 +148,7 @@ export default async function DashboardPage({
                     <span className="role-pill">{roleLabels[membership.role]}</span>
                   </div>
 
-                  <form action={updateRestaurant} className="business-form">
+                  <form id="business" action={updateRestaurant} className="business-form">
                     <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
                     <div className="business-section-title">Dados da loja</div>
                     <div className="business-field">
@@ -178,7 +189,7 @@ export default async function DashboardPage({
                   </form>
 
                   <section className="catalog-section">
-                    <div className="business-section-title">Cardápio · categorias</div>
+                    <div id="categories" className="business-section-title">Cardápio · categorias</div>
                     {categories.filter((item) => item.restaurant_id === membership.restaurant_id).map((category) => (
                       <form action={updateCategory} className="catalog-edit-row" key={category.id}>
                         <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
@@ -197,7 +208,7 @@ export default async function DashboardPage({
                       <button className="catalog-small-button" type="submit">Adicionar categoria</button>
                     </form>}
 
-                    <div className="business-section-title catalog-products-title">Cardápio · produtos</div>
+                    <div id="products" className="business-section-title catalog-products-title">Cardápio · produtos</div>
                     {products.filter((item) => item.restaurant_id === membership.restaurant_id).map((product) => (
                       <form action={updateProduct} className="catalog-product-row" key={product.id}>
                         <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
@@ -237,7 +248,8 @@ export default async function DashboardPage({
           <div className="dashboard-info"><strong>Nenhum restaurante vinculado</strong><span className="dashboard-info-note">Quando um restaurante for associado à sua conta, ele aparecerá aqui.</span></div>
         )}
         <p className="dashboard-warning">O restaurante em configuração ainda não está publicado e não pode receber pedidos. Os horários atuais são provisórios; confirme-os antes de ativar a loja.</p>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
