@@ -55,7 +55,7 @@ const days = [
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; catalog?: string; catalog_error?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
