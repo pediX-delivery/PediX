@@ -152,3 +152,39 @@ h1 span { color: var(--green); }
 .restaurant-slug { margin: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .restaurant-card-footer { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); color: #b6c5bb; font-size: 11px; }
 @media (max-width: 480px) { .dashboard-section-heading { align-items: start; flex-direction: column; } .restaurant-card-footer { flex-wrap: wrap; } }
+
+
+.restaurant-editor { padding: 24px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.restaurant-editor-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.restaurant-editor-heading h3 { margin: 13px 0 5px; font: 700 22px Manrope, sans-serif; }
+.role-pill { padding: 7px 10px; border: 1px solid var(--border); border-radius: 99px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.business-form { display: flex; flex-direction: column; gap: 13px; padding-top: 22px; }
+.business-section-title { margin-top: 14px; color: var(--green); font: 700 12px Manrope, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.business-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.business-field label, .hours-time { color: #dce8df; font-size: 12px; font-weight: 600; }
+.business-field input, .business-field textarea, .hours-time input { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid rgba(225,245,232,.13); border-radius: 9px; outline: none; color: var(--text); background: #0b110e; font: inherit; }
+.business-field textarea { resize: vertical; line-height: 1.5; }
+.business-field input:focus, .business-field textarea:focus, .hours-time input:focus { border-color: rgba(167,243,107,.65); box-shadow: 0 0 0 3px rgba(167,243,107,.08); }
+.business-field input:disabled, .business-field textarea:disabled, .hours-time input:disabled { opacity: .65; cursor: not-allowed; }
+.business-field small { color: var(--muted); font-size: 11px; }
+.business-fields-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.hours-list { display: flex; flex-direction: column; gap: 8px; }
+.hours-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(100px, .8fr) minmax(100px, .8fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.015); }
+.hours-row > strong { font-size: 12px; }
+.hours-time { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; }
+.hours-time input { min-height: 36px; padding: 5px; font-size: 12px; }
+.hours-closed { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.hours-closed input { accent-color: var(--green); }
+.business-save { min-height: 47px; margin-top: 10px; border: 0; border-radius: 10px; color: #10200f; background: var(--green); cursor: pointer; font-weight: 800; }
+.business-save:hover { filter: brightness(1.05); }
+.form-notice { padding: 12px 14px; margin: 18px 0 0; border-radius: 10px; font-size: 13px; }
+.form-notice.success { color: var(--green); background: rgba(167,243,107,.09); }
+.form-notice.error { color: #ffb4a9; background: rgba(180,55,43,.13); }
+@media (max-width: 640px) {
+  .restaurant-editor { padding: 18px; }
+  .business-fields-grid { grid-template-columns: 1fr; }
+  .hours-row { grid-template-columns: 1fr 1fr; }
+  .hours-row > strong { grid-column: 1 / -1; }
+  .hours-closed { justify-self: start; }
+  .restaurant-editor-heading { flex-direction: column; }
+}
