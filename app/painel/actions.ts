@@ -22,7 +22,7 @@ async function authorizedRestaurant(restaurantId: string) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (!membership || !["owner", "admin", "manager"].includes(membership.role)) {
-    redirect("/painel?error=permission");
+    redirect("/painel/dados?error=permission");
   }
   return supabase;
 }
@@ -34,7 +34,7 @@ function finish(ok: boolean, error = "save"): never {
 
 export async function updateRestaurant(formData: FormData) {
   const restaurantId = field(formData, "restaurant_id", 64);
-  if (!restaurantId) redirect("/painel");
+  if (!restaurantId) redirect("/painel/dados");
   const supabase = await authorizedRestaurant(restaurantId);
 
   const name = field(formData, "name", 120);
@@ -45,7 +45,7 @@ export async function updateRestaurant(formData: FormData) {
   const addressNumber = field(formData, "address_number", 30);
   const neighborhood = field(formData, "neighborhood", 100);
   const postalCode = field(formData, "postal_code", 20);
-  if (!name) redirect("/painel?error=validation");
+  if (!name) redirect("/painel/dados?error=validation");
 
   const businessHours: Record<string, { open: string; close: string; closed: boolean }> = {};
   for (const day of dayKeys) {
@@ -53,7 +53,7 @@ export async function updateRestaurant(formData: FormData) {
     const close = field(formData, `${day}_close`, 5);
     const closed = formData.get(`${day}_closed`) === "on";
     const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
-    if (!closed && (!validTime(open) || !validTime(close))) redirect("/painel?error=hours");
+    if (!closed && (!validTime(open) || !validTime(close))) redirect("/painel/dados?error=hours");
     businessHours[day] = { open: open || "00:00", close: close || "00:00", closed };
   }
 
@@ -62,16 +62,16 @@ export async function updateRestaurant(formData: FormData) {
     address_street: addressStreet || null, address_number: addressNumber || null,
     neighborhood: neighborhood || null, postal_code: postalCode || null, business_hours: businessHours,
   }).eq("id", restaurantId).select("id").maybeSingle();
-  if (error || !data) redirect("/painel?error=save");
+  if (error || !data) redirect("/painel/dados?error=save");
   revalidatePath("/painel");
-  redirect("/painel?saved=1");
+  redirect("/painel/dados?saved=1");
 }
 
 export async function createCategory(formData: FormData) {
   const restaurantId = field(formData, "restaurant_id", 64);
   const name = field(formData, "category_name", 80);
   const description = field(formData, "category_description", 240);
-  if (!restaurantId || !name) redirect("/painel?catalog_error=validation");
+  if (!restaurantId || !name) redirect("/painel/categorias?catalog_error=validation");
   const supabase = await authorizedRestaurant(restaurantId);
   const { error } = await supabase.from("categories").insert({
     restaurant_id: restaurantId, name, description: description || null,
@@ -86,7 +86,7 @@ export async function updateCategory(formData: FormData) {
   const name = field(formData, "category_name", 80);
   const description = field(formData, "category_description", 240);
   const isActive = formData.get("is_active") === "on";
-  if (!restaurantId || !categoryId || !name) redirect("/painel?catalog_error=validation");
+  if (!restaurantId || !categoryId || !name) redirect("/painel/categorias?catalog_error=validation");
   const supabase = await authorizedRestaurant(restaurantId);
   const { data, error } = await supabase.from("categories")
     .update({ name, description: description || null, is_active: isActive })
@@ -103,7 +103,7 @@ export async function createProduct(formData: FormData) {
   const rawPrice = field(formData, "price", 20).replace(",", ".");
   const price = Number(rawPrice);
   if (!restaurantId || !name || !rawPrice || !Number.isFinite(price) || price < 0 || price > 999999) {
-    redirect("/painel?catalog_error=validation");
+    redirect("/painel/produtos?catalog_error=validation");
   }
   const supabase = await authorizedRestaurant(restaurantId);
   const { error } = await supabase.from("products").insert({
