@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const features = [
   {
     icon: "↗",
@@ -20,10 +22,10 @@ export default function Home() {
   return (
     <main className="shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="PediX início">
+        <Link className="brand" href="/" aria-label="PediX início">
           <span className="brand-mark">P</span>
           <span>PediX</span>
-        </a>
+        </Link>
         <span className="top-note">Tecnologia para operações de alimentação</span>
       </header>
 
