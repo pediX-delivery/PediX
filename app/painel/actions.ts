@@ -93,7 +93,7 @@ export async function updateCategory(formData: FormData) {
     .update({ name, description: description || null, is_active: isActive })
     .eq("restaurant_id", restaurantId).eq("id", categoryId).select("id").maybeSingle();
   if (error || !data) finish(false, error?.code === "23505" ? "duplicate" : "save", "/painel/categorias");
-  finish(true, "save", "/painel/produtos");
+  finish(true, "save", "/painel/categorias");
 }
 
 export async function createProduct(formData: FormData) {
@@ -112,7 +112,7 @@ export async function createProduct(formData: FormData) {
     description: description || null, price_cents: Math.round(price * 100),
   });
   if (error) finish(false, "save", "/painel/produtos");
-  finish(true);
+  finish(true, "save", "/painel/produtos");
 }
 
 export async function updateProduct(formData: FormData) {
@@ -125,13 +125,13 @@ export async function updateProduct(formData: FormData) {
   const price = Number(rawPrice);
   const isAvailable = formData.get("is_available") === "on";
   if (!restaurantId || !productId || !name || !rawPrice || !Number.isFinite(price) || price < 0 || price > 999999) {
-    redirect("/painel?catalog_error=validation");
+    redirect("/painel/produtos?catalog_error=validation");
   }
   const supabase = await authorizedRestaurant(restaurantId);
   const { data, error } = await supabase.from("products").update({
     category_id: categoryId || null, name, description: description || null,
     price_cents: Math.round(price * 100), is_available: isAvailable,
   }).eq("restaurant_id", restaurantId).eq("id", productId).select("id").maybeSingle();
-  if (error || !data) finish(false);
-  finish(true);
+  if (error || !data) finish(false, "save", "/painel/produtos");
+  finish(true, "save", "/painel/produtos");
 }
