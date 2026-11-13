@@ -27,9 +27,10 @@ async function authorizedRestaurant(restaurantId: string) {
   return supabase;
 }
 
-function finish(ok: boolean, error = "save"): never {
+function finish(ok: boolean, error = "save", path = "/painel"): never {
   revalidatePath("/painel");
-  redirect(ok ? "/painel?catalog=saved" : `/painel?catalog_error=${error}`);
+  revalidatePath(path);
+  redirect(ok ? `${path}?catalog=saved` : `${path}?catalog_error=${error}`);
 }
 
 export async function updateRestaurant(formData: FormData) {
@@ -76,8 +77,8 @@ export async function createCategory(formData: FormData) {
   const { error } = await supabase.from("categories").insert({
     restaurant_id: restaurantId, name, description: description || null,
   });
-  if (error) finish(false, error.code === "23505" ? "duplicate" : "save");
-  finish(true);
+  if (error) finish(false, error.code === "23505" ? "duplicate" : "save", "/painel/categorias");
+  finish(true, "save", "/painel/categorias");
 }
 
 export async function updateCategory(formData: FormData) {
@@ -91,8 +92,8 @@ export async function updateCategory(formData: FormData) {
   const { data, error } = await supabase.from("categories")
     .update({ name, description: description || null, is_active: isActive })
     .eq("restaurant_id", restaurantId).eq("id", categoryId).select("id").maybeSingle();
-  if (error || !data) finish(false, error?.code === "23505" ? "duplicate" : "save");
-  finish(true);
+  if (error || !data) finish(false, error?.code === "23505" ? "duplicate" : "save", "/painel/categorias");
+  finish(true, "save", "/painel/produtos");
 }
 
 export async function createProduct(formData: FormData) {
@@ -110,7 +111,7 @@ export async function createProduct(formData: FormData) {
     restaurant_id: restaurantId, category_id: categoryId || null, name,
     description: description || null, price_cents: Math.round(price * 100),
   });
-  if (error) finish(false, "save");
+  if (error) finish(false, "save", "/painel/produtos");
   finish(true);
 }
 
