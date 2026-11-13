@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateRestaurant } from "./actions";
+import { createCategory, createProduct, updateCategory, updateProduct, updateRestaurant } from "./actions";
 
 type BusinessHoursDay = { open?: string; close?: string; closed?: boolean };
 type BusinessHours = Record<string, BusinessHoursDay>;
@@ -24,6 +24,8 @@ type RestaurantMembership = {
   } | null;
 };
 
+type CatalogCategory = { id: string; name: string; description: string | null; sort_order: number; is_active: boolean };
+type CatalogProduct = { id: string; category_id: string | null; name: string; description: string | null; price_cents: number; is_available: boolean };
 type RestaurantStatus = "draft" | "active" | "suspended" | "closed";
 
 const statusLabels: Record<RestaurantStatus, string> = {
@@ -68,6 +70,15 @@ export default async function DashboardPage({
     .order("created_at", { ascending: true });
 
   const restaurants = (memberships ?? []) as unknown as RestaurantMembership[];
+  const restaurantIds = restaurants.map((item) => item.restaurant_id);
+  const [{ data: categoryRows }, { data: productRows }] = restaurantIds.length
+    ? await Promise.all([
+        supabase.from("categories").select("id, restaurant_id, name, description, sort_order, is_active").in("restaurant_id", restaurantIds).order("sort_order"),
+        supabase.from("products").select("id, restaurant_id, category_id, name, description, price_cents, is_available").in("restaurant_id", restaurantIds).order("created_at", { ascending: false }),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const categories = (categoryRows ?? []) as (CatalogCategory & { restaurant_id: string })[];
+  const products = (productRows ?? []) as (CatalogProduct & { restaurant_id: string })[];
 
   async function signOut() {
     "use server";
@@ -98,6 +109,10 @@ export default async function DashboardPage({
         {params.error === "validation" && <p className="form-notice error" role="alert">Informe o nome da loja para continuar.</p>}
         {params.error === "hours" && <p className="form-notice error" role="alert">Confira os horários informados. Use o formato HH:MM.</p>}
         {params.error === "save" && <p className="form-notice error" role="alert">Não foi possível salvar. Verifique suas permissões e tente novamente.</p>}
+        {params.catalog === "saved" && <p className="form-notice success" role="status">Cardápio atualizado com sucesso.</p>}
+        {params.catalog_error === "duplicate" && <p className="form-notice error" role="alert">Já existe uma categoria com esse nome nesta loja.</p>}
+        {params.catalog_error === "validation" && <p className="form-notice error" role="alert">Confira os campos obrigatórios e o preço informado.</p>}
+        {params.catalog_error === "save" && <p className="form-notice error" role="alert">Não foi possível salvar o item do cardápio. Confira os dados e tente novamente.</p>}
 
         <div className="dashboard-section-heading">
           <div><div className="auth-kicker">SEU NEGÓCIO</div><h2>Restaurantes</h2></div>
@@ -161,6 +176,59 @@ export default async function DashboardPage({
                     </div>
                     {canEdit ? <button className="business-save" type="submit">Salvar informações</button> : <p className="dashboard-info-note">Seu perfil pode consultar os dados, mas não editá-los.</p>}
                   </form>
+
+                  <section className="catalog-section">
+                    <div className="business-section-title">Cardápio · categorias</div>
+                    {categories.filter((item) => item.restaurant_id === membership.restaurant_id).map((category) => (
+                      <form action={updateCategory} className="catalog-edit-row" key={category.id}>
+                        <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
+                        <input type="hidden" name="category_id" value={category.id} />
+                        <input aria-label="Nome da categoria" name="category_name" defaultValue={category.name} maxLength={80} required disabled={!canEdit} />
+                        <input aria-label="Descrição da categoria" name="category_description" defaultValue={category.description ?? ""} maxLength={240} placeholder="Descrição (opcional)" disabled={!canEdit} />
+                        <label className="catalog-check"><input type="checkbox" name="is_active" defaultChecked={category.is_active} disabled={!canEdit} /> Ativa</label>
+                        {canEdit && <button className="catalog-small-button" type="submit">Salvar</button>}
+                      </form>
+                    ))}
+                    {categories.filter((item) => item.restaurant_id === membership.restaurant_id).length === 0 && <p className="catalog-empty">Nenhuma categoria cadastrada ainda.</p>}
+                    {canEdit && <form action={createCategory} className="catalog-create-form">
+                      <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
+                      <input name="category_name" placeholder="Nova categoria (ex.: Brownies)" maxLength={80} required />
+                      <input name="category_description" placeholder="Descrição opcional" maxLength={240} />
+                      <button className="catalog-small-button" type="submit">Adicionar categoria</button>
+                    </form>}
+
+                    <div className="business-section-title catalog-products-title">Cardápio · produtos</div>
+                    {products.filter((item) => item.restaurant_id === membership.restaurant_id).map((product) => (
+                      <form action={updateProduct} className="catalog-product-row" key={product.id}>
+                        <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
+                        <input type="hidden" name="product_id" value={product.id} />
+                        <div className="catalog-product-fields">
+                          <input aria-label="Nome do produto" name="product_name" defaultValue={product.name} maxLength={120} required disabled={!canEdit} />
+                          <input aria-label="Descrição do produto" name="product_description" defaultValue={product.description ?? ""} maxLength={500} placeholder="Descrição" disabled={!canEdit} />
+                          <input aria-label="Preço em reais" name="price" type="number" min="0" max="999999" step="0.01" defaultValue={(product.price_cents / 100).toFixed(2)} required disabled={!canEdit} />
+                          <select aria-label="Categoria" name="category_id" defaultValue={product.category_id ?? ""} disabled={!canEdit}>
+                            <option value="">Sem categoria</option>
+                            {categories.filter((item) => item.restaurant_id === membership.restaurant_id).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                          </select>
+                        </div>
+                        <div className="catalog-product-actions">
+                          <label className="catalog-check"><input type="checkbox" name="is_available" defaultChecked={product.is_available} disabled={!canEdit} /> Disponível</label>
+                          {canEdit && <button className="catalog-small-button" type="submit">Salvar produto</button>}
+                        </div>
+                      </form>
+                    ))}
+                    {products.filter((item) => item.restaurant_id === membership.restaurant_id).length === 0 && <p className="catalog-empty">Nenhum produto cadastrado ainda.</p>}
+                    {canEdit && <form action={createProduct} className="catalog-create-product">
+                      <input type="hidden" name="restaurant_id" value={membership.restaurant_id} />
+                      <div className="catalog-product-fields">
+                        <input name="product_name" placeholder="Nome do produto" maxLength={120} required />
+                        <input name="product_description" placeholder="Descrição opcional" maxLength={500} />
+                        <input name="price" type="number" min="0" max="999999" step="0.01" placeholder="Preço (R$)" required />
+                        <select name="category_id" defaultValue=""><option value="">Sem categoria</option>{categories.filter((item) => item.restaurant_id === membership.restaurant_id).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
+                      </div>
+                      <button className="business-save" type="submit">Adicionar produto</button>
+                    </form>}
+                  </section>
                 </article>
               );
             })}
