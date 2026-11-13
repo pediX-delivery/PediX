@@ -12,7 +12,9 @@ type RestaurantMembership = {
   } | null;
 };
 
-const statusLabels: Record<RestaurantMembership["restaurants"] extends infer R ? NonNullable<R>["status"] : never, string> = {
+type RestaurantStatus = "draft" | "active" | "suspended" | "closed";
+
+const statusLabels: Record<RestaurantStatus, string> = {
   draft: "Em configuração",
   active: "Ativo",
   suspended: "Suspenso",
