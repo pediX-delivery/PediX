@@ -152,7 +152,7 @@ export default async function DashboardPage({
                         return (
                           <div className="hours-row" key={key}>
                             <strong>{label}</strong>
-                            <label className="hours-time">Abre<input type="time" name={`${key}_open`} defaultValue={day.open ?? "14:00"} disabled={!canEdit || day.closed === true} /></label>
+                            <label className="hours-time">Abre<input type="time" name={`${key}_open`} defaultValue={day.open ?? "14:00"} disabled={!canEdit} /></label>
                             <label className="hours-time">Fecha<input type="time" name={`${key}_close`} defaultValue={day.close ?? "22:00"} disabled={!canEdit || day.closed === true} /></label>
                             <label className="hours-closed"><input type="checkbox" name={`${key}_closed`} defaultChecked={day.closed === true} disabled={!canEdit} /> Fechado</label>
                           </div>
